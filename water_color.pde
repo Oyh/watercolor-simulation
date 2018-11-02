@@ -1,4 +1,4 @@
-float layer_alpha = 4;
+float layer_alpha = 3;
 ArrayList<ArrayList<ArrayList<PVector>>> stacklist;
 color[] c = new color[3];
 PGraphics p, m1, m2;
@@ -13,8 +13,8 @@ void setup() {
   p = createGraphics(width, height);
   
   stacklist = new ArrayList<ArrayList<ArrayList<PVector>>>();
-  stacklist.add(polystack(width/2, height/5*3, width/3.5, 10, 250, 290));
-  stacklist.add(polystack(width/2, height/5*2, width/3.5, 10, 70, 110));
+  stacklist.add(polystack(width/2, height/5*3, width/3.5, 10));
+  stacklist.add(polystack(width/2, height/5*2, width/3.5, 10));
   c[0] = color(98, 96, 89);
   c[1] = color(14, 73, 96);
   
@@ -59,9 +59,9 @@ void draw_poly(ArrayList<PVector> poly, color c) {
   m2.background(0, 0, 0);
   m2.noStroke();
   m2.fill(0, 0, 100);
-  for (int i = 0; i < 800; ++i) {
+  for (int i = 0; i < 900; ++i) {
     float x = random(0, width), y = random(0, height);
-    float r = abs(randomGaussian()) * width * 0.03 + width*0.02;
+    float r = abs(randomGaussian()) * width*0.03 + width*0.02;
     m2.ellipse(x, y, r, r);
   }
   m2.blend(m1, 0, 0, width, height, 0, 0, width, height, DARKEST);
@@ -76,17 +76,17 @@ void draw_poly(ArrayList<PVector> poly, color c) {
   image(p, 0, 0);
 }
 
-ArrayList<ArrayList<PVector>> polystack(float x, float y, float r,
-                                        int nsides, float sa, float ea) {
+ArrayList<ArrayList<PVector>> polystack(float x, float y, float r, int nsides) {
   ArrayList<ArrayList<PVector>> stack;
   ArrayList<PVector> base_poly, poly;
+  
   stack = new ArrayList<ArrayList<PVector>>();
   
   base_poly = rpoly(x, y, r, nsides);
-  base_poly = deform(base_poly, x, y, 4, 4, 1, sa, ea);
+  base_poly = deform(base_poly, x, y, 4, 4, 1);
   
   for (int i = 0; i < 70; ++i) {
-    poly = deform(base_poly, x, y, 5, 3, 1, sa, ea);
+    poly = deform(base_poly, x, y, 5, 3, 1);
     stack.add(poly);
   }
   
@@ -107,9 +107,9 @@ ArrayList<PVector> rpoly(float x, float y, float r, int nsides) {
   return points;
 }
 
-ArrayList<PVector> deform(ArrayList<PVector> points, float x, float y, int depth,
-                          float variance, float vdiv, float sa, float ea) {
-  float sx1, sy1, sx2 = 0, sy2 = 0, angle;
+ArrayList<PVector> deform(ArrayList<PVector> points, float x, float y,
+                          int depth, float variance, float vdiv) {
+  float sx1, sy1, sx2 = 0, sy2 = 0;
   ArrayList<PVector> new_points = new ArrayList<PVector>();
 
   for (int i = 0; i < points.size(); ++i) {
@@ -119,12 +119,11 @@ ArrayList<PVector> deform(ArrayList<PVector> points, float x, float y, int depth
     sy2 = points.get((i + 1) % points.size()).y;
 
     new_points.add(new PVector(sx1, sy1));
-    angle = calc_angle(x, y, sx1, sy1);
-      if ((ea - sa < 180 && sa < angle && angle < ea) ||
-        (ea - sa > 180 && (angle < sa || ea < angle))) {
-      subdivide(new_points, sx1, sy1, sx2, sy2, depth, 2, 1.2);
+    float tmp = constrain(abs(randomGaussian()), 0, 4);
+    if (tmp < 3) {
+      subdivide(new_points, sx1, sy1, sx2, sy2, depth, 3, 1);
     } else {
-      subdivide(new_points, sx1, sy1, sx2, sy2, depth, variance, vdiv);
+      subdivide(new_points, sx1, sy1, sx2, sy2, depth, 2, 1.2);
     }
   }
 
@@ -154,8 +153,9 @@ void subdivide(ArrayList<PVector> new_points, float x1, float y1,
     nx = midx + randomGaussian() * distance;
     ny = midy + randomGaussian() * distance;
     
-    subdivide(new_points, x1, y1, nx, ny, depth - 1, variance*vdiv, vdiv);
+    float tmp = vdiv + random(-0.1, 0.1);
+    subdivide(new_points, x1, y1, nx, ny, depth - 1, variance*vdiv, tmp);
     new_points.add(new PVector(nx, ny));
-    subdivide(new_points, nx, ny, x2, y2, depth - 1, variance*vdiv, vdiv);
+    subdivide(new_points, nx, ny, x2, y2, depth - 1, variance*vdiv, tmp);
   }
 }
